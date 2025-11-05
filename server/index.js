@@ -2,6 +2,12 @@ import express from 'express'
 import cors from 'cors'
 import { ethers } from 'ethers'
 import { Contract, CotiNetwork, getDefaultProvider, Wallet } from '@coti-io/coti-ethers'
+import { readFileSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const app = express()
 const PORT = process.env.PORT || 3002
@@ -11,58 +17,13 @@ app.use(cors())
 app.use(express.json())
 
 // Contract configuration
-const CONTRACT_ADDRESS = '0xb47c29ff397d3e32a03e13d6B0a6ea9fdb6D7E07';
+const DATE_GAME_ADDRESS = '0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729'
 const PRIVATE_KEY = 'ae7f54c98460fed4c2ecb2e143f0e8110db534d390940f9f7b7048b94d614306'
-const AES_KEY = 'ae7f54c98460fed4c2ecb2e143f0e8110db534d390940f9f7b7048b94d614306' // Using same key for simplicity
+const AES_KEY = '8d41ade6e238d837bdbd44bac75dfac4'
 
-const DateGameABI = [
-  {
-    "inputs": [{ "components": [{ "internalType": "ctUint64", "name": "ciphertext", "type": "uint256" }, { "internalType": "bytes", "name": "signature", "type": "bytes" }], "internalType": "struct itUint64", "name": "birthdate", "type": "tuple" }],
-    "name": "setAge",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "components": [{ "internalType": "ctUint64", "name": "ciphertext", "type": "uint256" }, { "internalType": "bytes", "name": "signature", "type": "bytes" }], "internalType": "struct itUint64", "name": "value", "type": "tuple" }],
-    "name": "greaterThan",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "components": [{ "internalType": "ctUint64", "name": "ciphertext", "type": "uint256" }, { "internalType": "bytes", "name": "signature", "type": "bytes" }], "internalType": "struct itUint64", "name": "value", "type": "tuple" }],
-    "name": "lessThan",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "isDateSet",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "internalType": "string", "name": "operation", "type": "string" },
-      { "indexed": false, "internalType": "ctBool", "name": "userEncryptedResult", "type": "uint256" }
-    ],
-    "name": "ComparisonResult",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "internalType": "string", "name": "message", "type": "string" }
-    ],
-    "name": "AgeStored",
-    "type": "event"
-  }
-]
+// Load ABI from file
+const DateGameABIFile = JSON.parse(readFileSync(join(__dirname, 'DateGameABI.json'), 'utf8'))
+const DateGameABI = DateGameABIFile.abi
 
 // Initialize Coti provider and wallet
 let cotiProvider, cotiWallet, contract
@@ -78,7 +39,7 @@ async function initializeCoti() {
     console.log('Wallet address:', cotiWallet.address)
 
     console.log('Creating contract instance...')
-    contract = new Contract(CONTRACT_ADDRESS, DateGameABI, cotiWallet)
+    contract = new Contract(DATE_GAME_ADDRESS, DateGameABI, cotiWallet)
 
     console.log('✅ Coti service initialized successfully!')
     return true
@@ -143,7 +104,7 @@ app.post('/api/store-date', async (req, res) => {
     console.log('Encrypting value...')
     const encryptedValue = await cotiWallet.encryptValue(
       bigIntValue,
-      CONTRACT_ADDRESS,
+      DATE_GAME_ADDRESS,
       contract.setAge.fragment.selector
     )
 
@@ -181,8 +142,8 @@ app.get('/api/is-date-set', async (req, res) => {
       }
     }
 
-    const isSet = await contract.isDateSet()
-    res.json({ isDateSet: isSet })
+    const isSet = await contract.isAgeSet()
+    res.json({ isAgeSet: isSet })
   } catch (error) {
     console.error('Error checking if date is set:', error)
     res.status(500).json({ error: 'Failed to check date status' })
@@ -246,18 +207,25 @@ app.post('/api/compare-date', async (req, res) => {
       }
     }
 
-    console.log('Comparing age:', date, 'operation:', operation)
+    console.log('Comparing with birthdate:', date, 'operation:', operation)
 
-    // The 'date' parameter now contains the age value directly (not a date)
-    const ageValue = parseInt(date)
+    // Calculate age from birthdate
+    const birthDate = new Date(date)
+    const today = new Date()
+    let ageValue = today.getFullYear() - birthDate.getFullYear()
+    const monthDiff = today.getMonth() - birthDate.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      ageValue--
+    }
+    
     const bigIntValue = BigInt(ageValue)
 
-    console.log('Age value for comparison:', ageValue)
+    console.log('Calculated age for comparison:', ageValue)
     console.log('BigInt value for comparison:', bigIntValue.toString())
     
     // Get the stored age for debugging
     try {
-      const storedAge = await contract.isDateSet() ? 'set' : 'not set'
+      const storedAge = await contract.isAgeSet() ? 'set' : 'not set'
       console.log('Date set status:', storedAge)
     } catch (e) {
       console.log('Could not check date status')
@@ -271,78 +239,48 @@ app.post('/api/compare-date', async (req, res) => {
 
     const encryptedValue = await cotiWallet.encryptValue(
       bigIntValue,
-      CONTRACT_ADDRESS,
+      DATE_GAME_ADDRESS,
       functionSelector
     )
 
-    console.log('Calling comparison function as transaction...')
-
     // First check if date is set
-    const isDateSet = await contract.isDateSet()
-    console.log('Is date set before comparison:', isDateSet)
+    const isAgeSet = await contract.isAgeSet()
+    console.log('Is age set before comparison:', isAgeSet)
 
-    if (!isDateSet) {
+    if (!isAgeSet) {
       return res.status(400).json({ error: 'No date has been stored yet. Please store a date first.' })
     }
 
+    // Step 1: Call the comparison function (transaction) - following Counter.add() pattern
+    console.log('Calling comparison transaction...')
     let tx
     try {
       if (operation === 'greater') {
-        tx = await contract.greaterThan(encryptedValue, {
-          gasLimit: 500000
-        })
+        tx = await contract.greaterThan(encryptedValue, { gasLimit: 500000 })
       } else {
-        tx = await contract.lessThan(encryptedValue, {
-          gasLimit: 500000
-        })
+        tx = await contract.lessThan(encryptedValue, { gasLimit: 500000 })
       }
+      console.log('Transaction sent:', tx.hash)
+      const receipt = await tx.wait()
+      console.log('Transaction confirmed in block:', receipt.blockNumber)
     } catch (txError) {
       console.error('Transaction failed:', txError)
       return res.status(500).json({ error: 'Transaction failed: ' + txError.message })
     }
 
-    console.log('Transaction sent:', tx.hash)
-    const receipt = await tx.wait()
-    console.log('Transaction receipt:', receipt)
+    // Step 2: Read the result using view function - following Counter.sum() pattern
+    console.log('Reading comparison result from view function...')
+    const ctResult = await contract.comparisonResult()
+    console.log('Got encrypted result (ctUint8):', ctResult.toString())
 
-    // Parse events from the receipt to get the encrypted result (ctBool)
-    let encryptedResult = null
-
-    console.log('Receipt logs:', receipt.logs)
-
-    if (receipt.logs && receipt.logs.length > 0) {
-      for (const log of receipt.logs) {
-        try {
-          const parsedLog = contract.interface.parseLog(log)
-          console.log('Parsed log:', parsedLog)
-
-          if (parsedLog && parsedLog.name === 'ComparisonResult') {
-            encryptedResult = parsedLog.args.userEncryptedResult
-            console.log('Found ComparisonResult event with encrypted result:', encryptedResult.toString())
-            break
-          }
-        } catch (parseError) {
-          console.log('Could not parse log:', parseError.message)
-        }
-      }
-    }
-
-    if (encryptedResult === null) {
-      console.error('❌ ERROR: No ComparisonResult event found in transaction logs!')
-      return res.status(500).json({ 
-        error: 'Failed to get comparison result from blockchain.',
-        transactionHash: tx.hash 
-      })
-    }
-
-    // Decrypt the ctBool result off-chain using the wallet's AES key
-    console.log('Decrypting result off-chain...')
-    const decryptedResult = await cotiWallet.decryptValue(encryptedResult)
-    console.log('Decrypted result:', decryptedResult)
+    // Step 3: Decrypt the result - following Counter example
+    const clearResult = await cotiWallet.decryptValue(ctResult)
+    console.log('Decrypted clear value:', clearResult)
     
-    // Convert BigInt to boolean
-    const boolResult = decryptedResult !== 0n
-
+    // Convert to boolean (1 = true, 0 = false)
+    const boolResult = clearResult === 1n || clearResult === BigInt(1)
+    console.log('Boolean result:', boolResult)
+    
     res.json({
       success: true,
       result: boolResult,

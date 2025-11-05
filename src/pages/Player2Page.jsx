@@ -91,7 +91,7 @@ function Player2Page() {
 
   return (
     <div className="app">
-      <h1 className="title">Age Guessing Game - Player 2</h1>
+      <h1 className="title">Age Guessing Game - Player</h1>
       
       <div style={{
         textAlign: 'center',
@@ -103,36 +103,24 @@ function Player2Page() {
         maxWidth: '800px',
         margin: '0 auto 1rem auto'
       }}>
-        <div style={{fontSize: '0.95rem', color: '#856404'}}>
-          💰 Need testnet tokens? Join the{' '}
-          <a 
-            href="https://discord.com/invite/Z4r8D6ez49" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            style={{color: '#0066cc', textDecoration: 'underline', fontWeight: 'bold'}}
-          >
-            COTI Discord Faucet
-          </a>
-        </div>
-      </div>
-      
-      <div className="wallet-info" style={{
-        textAlign: 'center', 
-        marginBottom: '2rem',
-        padding: '1.5rem',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '12px',
-        border: '1px solid #e9ecef',
-        maxWidth: '800px',
-        margin: '0 auto 2rem auto'
-      }}>
-        <div style={{fontSize: '1.1rem', marginBottom: '0.5rem'}}>🔐 Server-side encryption with Coti MPC</div>
-        <div style={{fontSize: '0.9rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0xf4C65aeA6B25621c6F065c17816D90Db3230BC75</div>
+        💰 Need test tokens? Get them from the <a href="https://discord.com/invite/Z4r8D6ez49" target="_blank" rel="noopener noreferrer">COTI Testnet Faucet</a>
       </div>
 
       <div className="cards-container" style={{justifyContent: 'center'}}>
         <div className="card" style={{maxWidth: '500px'}}>
           <h2 className="card-title">Guess Age</h2>
+          
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '1.5rem',
+            padding: '1rem',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '8px',
+            border: '1px solid #e9ecef'
+          }}>
+            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Server-side encryption with Coti MPC</div>
+            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0xf4C65aeA6B25621c6F065c17816D90Db3230BC75</div>
+          </div>
           
           <div className="form-group">
             <label className="form-label">Enter Age to Compare:</label>
@@ -238,15 +226,6 @@ function Player2Page() {
               </div>
             </div>
           )}
-
-          <div style={{marginTop: '2rem', textAlign: 'center'}}>
-            <button
-              className="btn btn-secondary"
-              onClick={() => navigate('/player1')}
-            >
-              ← Back to Player 1
-            </button>
-          </div>
         </div>
       </div>
     </div>

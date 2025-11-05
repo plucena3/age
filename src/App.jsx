@@ -9,8 +9,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/player1" element={<Player1Page />} />
-        <Route path="/player2" element={<Player2Page />} />
+        <Route path="/admin" element={<Player1Page />} />
+        <Route path="/player" element={<Player2Page />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

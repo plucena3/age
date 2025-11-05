@@ -94,25 +94,23 @@ function Player1Page() {
 
   return (
     <div className="app">
-      <h1 className="title">Age Guessing Game - Player 1</h1>
+      <h1 className="title">Age Guessing Game - Admin</h1>
       
-      <div className="wallet-info" style={{
-        textAlign: 'center', 
-        marginBottom: '2rem',
-        padding: '1.5rem',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '12px',
-        border: '1px solid #e9ecef',
-        maxWidth: '800px',
-        margin: '0 auto 2rem auto'
-      }}>
-        <div style={{fontSize: '1.1rem', marginBottom: '0.5rem'}}>🔐 Server-side encryption with Coti MPC</div>
-        <div style={{fontSize: '0.9rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0xf4C65aeA6B25621c6F065c17816D90Db3230BC75</div>
-      </div>
-
       <div className="cards-container" style={{justifyContent: 'center'}}>
         <div className="card" style={{maxWidth: '500px'}}>
           <h2 className="card-title">Store Birth Date</h2>
+          
+          <div style={{
+            textAlign: 'center',
+            marginBottom: '1.5rem',
+            padding: '1rem',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '8px',
+            border: '1px solid #e9ecef'
+          }}>
+            <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Server-side encryption with Coti MPC</div>
+            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0xf4C65aeA6B25621c6F065c17816D90Db3230BC75</div>
+          </div>
           
           <div className="form-group">
             <label className="form-label">Select Birth Date:</label>
@@ -137,15 +135,6 @@ function Player1Page() {
               {storeStatus}
             </div>
           )}
-
-          <div style={{marginTop: '2rem', textAlign: 'center'}}>
-            <button
-              className="btn btn-secondary"
-              onClick={() => window.open('/player2', '_blank')}
-            >
-              Continue to Player 2 →
-            </button>
-          </div>
         </div>
       </div>
     </div>

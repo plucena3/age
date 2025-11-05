@@ -5,53 +5,52 @@ pragma solidity ^0.8.19;
 import "@coti-io/coti-contracts/contracts/utils/mpc/MpcCore.sol";
 
 contract DateGame {
-    // stored date as user-specific ciphertext (for the server wallet)
-    utUint64 private _date;
+    // stored age as plaintext (for debugging)
+    uint64 private _date;
     bool private _dateSet;
     
     // Events to capture comparison results
     event ComparisonResult(string operation, bool result);
-    event DateStored(uint64 value);
+    event AgeStored(uint64 value);
     
     constructor() {
         _dateSet = false;
     }
 
     /**
-     * @notice Check if a date has been stored
+     * @notice Check if an age has been stored
      */
     function isDateSet() external view returns (bool) {
         return _dateSet;
     }
 
     /**
-     * @notice set the stored date value (encrypted user-specific ciphertext)
-     * @param value encrypted input (itUint64) coming from user
+     * @notice set the stored age value directly
+     * @param age encrypted input (itUint64) coming from user representing their age in years
      */
-    function setDate(itUint64 calldata value) external {
-        gtUint64 gtValue = MpcCore.validateCiphertext(value);
-        // store as user-specific ciphertext for the caller
-        _date = MpcCore.offBoardCombined(gtValue, msg.sender);
+    function setAge(itUint64 calldata age) external {
+        gtUint64 gtAge = MpcCore.validateCiphertext(age);
+        
+        // Decrypt and store as plaintext for debugging
+        _date = MpcCore.decrypt(gtAge);
         _dateSet = true;
         
-        // Emit event with the stored value for debugging
-        uint64 storedClear = MpcCore.decrypt(gtValue);
-        emit DateStored(storedClear);
+        // Emit event with decrypted value
+        emit AgeStored(_date);
     }
 
     /**
-     * @notice Compares the stored date with an incoming encrypted value and returns true if stored > value
-     * @param value encrypted input (itUint64) coming from user
+     * @notice Compares the stored age with an incoming encrypted age value and returns true if stored age > incoming age
+     * @param value encrypted input (itUint64) coming from user representing an age to compare
      */
     function greaterThan(itUint64 calldata value) external returns (bool) {
-        require(_dateSet, "No date has been stored yet");
+        require(_dateSet, "No age has been stored yet");
         
         gtUint64 incomingGt = MpcCore.validateCiphertext(value);
-        gtUint64 storedGt = MpcCore.onBoard(_date.ciphertext);
         
-        // Use MPC's native gt function for encrypted comparison (no decryption needed)
-        gtBool gtResult = MpcCore.gt(storedGt, incomingGt);
-        bool result = MpcCore.decrypt(gtResult);
+        // Decrypt incoming value and compare with stored plaintext
+        uint64 incomingValue = MpcCore.decrypt(incomingGt);
+        bool result = _date > incomingValue;
         
         // Emit event with the result
         emit ComparisonResult("greaterThan", result);
@@ -60,18 +59,17 @@ contract DateGame {
     }
 
     /**
-     * @notice Compares the stored date with an incoming encrypted value and returns true if stored < value
-     * @param value encrypted input (itUint64) coming from user
+     * @notice Compares the stored age with an incoming encrypted age value and returns true if stored age < incoming age
+     * @param value encrypted input (itUint64) coming from user representing an age to compare
      */
     function lessThan(itUint64 calldata value) external returns (bool) {
-        require(_dateSet, "No date has been stored yet");
+        require(_dateSet, "No age has been stored yet");
         
         gtUint64 incomingGt = MpcCore.validateCiphertext(value);
-        gtUint64 storedGt = MpcCore.onBoard(_date.ciphertext);
         
-        // Use MPC's native lt function for encrypted comparison (no decryption needed)
-        gtBool ltResult = MpcCore.lt(storedGt, incomingGt);
-        bool result = MpcCore.decrypt(ltResult);
+        // Decrypt incoming value and compare with stored plaintext
+        uint64 incomingValue = MpcCore.decrypt(incomingGt);
+        bool result = _date < incomingValue;
         
         // Emit event with the result
         emit ComparisonResult("lessThan", result);
@@ -79,15 +77,4 @@ contract DateGame {
         return result;
     }
 
-    /**
-     * @notice Get the stored date in clear text (for debugging)
-     */
-    function getStoredDateClear() external returns (uint64) {
-        require(_dateSet, "No date has been stored yet");
-        
-        gtUint64 storedGt = MpcCore.onBoard(_date.ciphertext);
-        uint64 clearValue = MpcCore.decrypt(storedGt);
-        emit DateStored(clearValue);
-        return clearValue;
-    }
 }

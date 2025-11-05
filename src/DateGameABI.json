@@ -5,27 +5,47 @@
     "type": "constructor"
   },
   {
+    "anonymous": false,
     "inputs": [
       {
-        "components": [
-          {
-            "internalType": "ctUint64",
-            "name": "ciphertext",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bytes",
-            "name": "signature",
-            "type": "bytes"
-          }
-        ],
-        "internalType": "struct itUint64",
+        "indexed": false,
+        "internalType": "uint64",
         "name": "value",
-        "type": "tuple"
+        "type": "uint64"
       }
     ],
-    "name": "add",
-    "outputs": [],
+    "name": "AgeStored",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "operation",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "result",
+        "type": "bool"
+      }
+    ],
+    "name": "ComparisonResult",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "getStoredDateClear",
+    "outputs": [
+      {
+        "internalType": "uint64",
+        "name": "",
+        "type": "uint64"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -58,6 +78,19 @@
       }
     ],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "isDateSet",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -107,26 +140,13 @@
           }
         ],
         "internalType": "struct itUint64",
-        "name": "value",
+        "name": "birthdate",
         "type": "tuple"
       }
     ],
-    "name": "setDate",
+    "name": "setAge",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "sum",
-    "outputs": [
-      {
-        "internalType": "ctUint64",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   }
 ]

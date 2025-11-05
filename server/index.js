@@ -11,14 +11,14 @@ app.use(cors())
 app.use(express.json())
 
 // Contract configuration
-const CONTRACT_ADDRESS = '0x9a6dab6FaA963D177C52D2f3bdB60E89Fef2F3c2'
+const CONTRACT_ADDRESS = '0xf4C65aeA6B25621c6F065c17816D90Db3230BC75'
 const PRIVATE_KEY = 'ae7f54c98460fed4c2ecb2e143f0e8110db534d390940f9f7b7048b94d614306'
 const AES_KEY = 'ae7f54c98460fed4c2ecb2e143f0e8110db534d390940f9f7b7048b94d614306' // Using same key for simplicity
 
 const DateGameABI = [
   {
-    "inputs": [{ "components": [{ "internalType": "ctUint64", "name": "ciphertext", "type": "uint256" }, { "internalType": "bytes", "name": "signature", "type": "bytes" }], "internalType": "struct itUint64", "name": "value", "type": "tuple" }],
-    "name": "setDate",
+    "inputs": [{ "components": [{ "internalType": "ctUint64", "name": "ciphertext", "type": "uint256" }, { "internalType": "bytes", "name": "signature", "type": "bytes" }], "internalType": "struct itUint64", "name": "birthdate", "type": "tuple" }],
+    "name": "setAge",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -44,13 +44,7 @@ const DateGameABI = [
     "stateMutability": "view",
     "type": "function"
   },
-  {
-    "inputs": [],
-    "name": "getStoredDateClear",
-    "outputs": [{ "internalType": "uint64", "name": "", "type": "uint64" }],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
+
   {
     "anonymous": false,
     "inputs": [
@@ -65,7 +59,7 @@ const DateGameABI = [
     "inputs": [
       { "indexed": false, "internalType": "uint64", "name": "value", "type": "uint64" }
     ],
-    "name": "DateStored",
+    "name": "AgeStored",
     "type": "event"
   }
 ]
@@ -128,11 +122,21 @@ app.post('/api/store-date', async (req, res) => {
 
     console.log('Storing date:', date)
 
-    // Convert date to days since epoch
-    const daysSinceEpoch = dateToEpochDays(date)
-    const bigIntValue = BigInt(daysSinceEpoch)
+    // Calculate age in years on the server side
+    const birthDate = new Date(date)
+    const now = new Date()
+    let age = now.getFullYear() - birthDate.getFullYear()
+    const monthDiff = now.getMonth() - birthDate.getMonth()
+    
+    // Adjust age if birthday hasn't occurred this year yet
+    if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
+      age--
+    }
+    
+    const bigIntValue = BigInt(age)
 
-    console.log('Days since epoch:', daysSinceEpoch)
+    console.log('Birth date:', birthDate.toISOString())
+    console.log('Calculated age in years:', age)
     console.log('BigInt value for storage:', bigIntValue.toString())
 
     // Encrypt using Coti wallet
@@ -140,23 +144,25 @@ app.post('/api/store-date', async (req, res) => {
     const encryptedValue = await cotiWallet.encryptValue(
       bigIntValue,
       CONTRACT_ADDRESS,
-      contract.setDate.fragment.selector
+      contract.setAge.fragment.selector
     )
 
     console.log('Sending transaction...')
-    const tx = await contract.setDate(encryptedValue, {
+    const tx = await contract.setAge(encryptedValue, {
       gasLimit: 500000
     })
 
     console.log('Transaction sent:', tx.hash)
     const receipt = await tx.wait()
+    console.log('Age stored successfully. Calculated age:', age)
 
     res.json({
       success: true,
       transactionHash: tx.hash,
       blockNumber: receipt.blockNumber,
       date: date,
-      daysSinceEpoch: daysSinceEpoch
+      age: age,
+      encryptedCiphertext: encryptedValue.ciphertext?.toString() || encryptedValue[0]?.toString() || 'N/A'
     })
 
   } catch (error) {
@@ -184,54 +190,6 @@ app.get('/api/is-date-set', async (req, res) => {
 })
 
 // Get stored date (for debugging)
-app.get('/api/get-stored-date', async (req, res) => {
-  try {
-    if (!contract) {
-      const initialized = await initializeCoti()
-      if (!initialized) {
-        return res.status(500).json({ error: 'Failed to initialize Coti service' })
-      }
-    }
-
-    // Call as transaction since it uses MpcCore.decrypt
-    const tx = await contract.getStoredDateClear({
-      gasLimit: 300000
-    })
-
-    console.log('Transaction sent:', tx.hash)
-    const receipt = await tx.wait()
-
-    // Parse events to get the stored date
-    let storedValue = null
-
-    if (receipt.logs && receipt.logs.length > 0) {
-      for (const log of receipt.logs) {
-        try {
-          const parsedLog = contract.interface.parseLog(log)
-          console.log('Parsed log:', parsedLog)
-
-          if (parsedLog.name === 'DateStored') {
-            storedValue = parsedLog.args.value.toString()
-            console.log('Found DateStored event with value:', storedValue)
-            break
-          }
-        } catch (parseError) {
-          console.log('Could not parse log:', parseError.message)
-        }
-      }
-    }
-
-    if (storedValue === null) {
-      return res.status(500).json({ error: 'Could not retrieve stored date from transaction events' })
-    }
-
-    res.json({ storedDate: storedValue })
-  } catch (error) {
-    console.error('Error getting stored date:', error)
-    res.status(500).json({ error: 'Failed to get stored date: ' + error.message })
-  }
-})
-
 // Debug date conversion
 app.post('/api/debug-date', async (req, res) => {
   try {
@@ -274,7 +232,7 @@ app.post('/api/compare-date', async (req, res) => {
     const { date, operation } = req.body
 
     if (!date || !operation) {
-      return res.status(400).json({ error: 'Date and operation are required' })
+      return res.status(400).json({ error: 'Age and operation are required' })
     }
 
     if (!['greater', 'less'].includes(operation)) {
@@ -288,14 +246,22 @@ app.post('/api/compare-date', async (req, res) => {
       }
     }
 
-    console.log('Comparing date:', date, 'operation:', operation)
+    console.log('Comparing age:', date, 'operation:', operation)
 
-    // Convert date to days since epoch
-    const daysSinceEpoch = dateToEpochDays(date)
-    const bigIntValue = BigInt(daysSinceEpoch)
+    // The 'date' parameter now contains the age value directly (not a date)
+    const ageValue = parseInt(date)
+    const bigIntValue = BigInt(ageValue)
 
-    console.log('Days since epoch:', daysSinceEpoch)
+    console.log('Age value for comparison:', ageValue)
     console.log('BigInt value for comparison:', bigIntValue.toString())
+    
+    // Get the stored age for debugging
+    try {
+      const storedAge = await contract.isDateSet() ? 'set' : 'not set'
+      console.log('Date set status:', storedAge)
+    } catch (e) {
+      console.log('Could not check date status')
+    }
 
     // Encrypt using Coti wallet
     console.log('Encrypting comparison value...')
@@ -378,14 +344,13 @@ app.post('/api/compare-date', async (req, res) => {
       success: true,
       result: result,
       operation: operation,
-      date: date,
-      daysSinceEpoch: daysSinceEpoch,
+      age: ageValue,
       transactionHash: tx.hash
     })
 
   } catch (error) {
-    console.error('Error comparing date:', error)
-    res.status(500).json({ error: 'Failed to compare date: ' + error.message })
+    console.error('Error comparing age:', error)
+    res.status(500).json({ error: 'Failed to compare age: ' + error.message })
   }
 })
 

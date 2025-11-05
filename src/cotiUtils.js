@@ -33,8 +33,8 @@ export class CotiService {
       console.log('Creating contract instance...')
       const DateGameABI = [
         {
-          "inputs": [{"components": [{"internalType": "ctUint64", "name": "ciphertext", "type": "uint256"}, {"internalType": "bytes", "name": "signature", "type": "bytes"}], "internalType": "struct itUint64", "name": "value", "type": "tuple"}],
-          "name": "setDate",
+          "inputs": [{"components": [{"internalType": "ctUint64", "name": "ciphertext", "type": "uint256"}, {"internalType": "bytes", "name": "signature", "type": "bytes"}], "internalType": "struct itUint64", "name": "birthdate", "type": "tuple"}],
+          "name": "setAge",
           "outputs": [],
           "stateMutability": "nonpayable",
           "type": "function"
@@ -112,13 +112,13 @@ export class CotiService {
       const encryptedValue = await this.cotiWallet.encryptValue(
         bigIntValue,
         this.contractAddress,
-        'setDate(tuple)'
+        'setAge(tuple)'
       )
       
       console.log('Encryption successful, sending transaction...')
       
       // Send transaction using server wallet
-      const tx = await this.contract.setDate(encryptedValue, {
+      const tx = await this.contract.setAge(encryptedValue, {
         gasLimit: 500000
       })
       
@@ -227,4 +227,4 @@ export class CotiService {
 }
 
 // Contract address
-export const CONTRACT_ADDRESS = '0x9a6dab6FaA963D177C52D2f3bdB60E89Fef2F3c2'
+export const CONTRACT_ADDRESS = '0xf4C65aeA6B25621c6F065c17816D90Db3230BC75'

@@ -306,7 +306,7 @@ app.post('/api/compare-date', async (req, res) => {
     console.log('Transaction receipt:', receipt)
 
     // Parse events from the receipt to get the comparison result
-    let result = false
+    let result = null
     let storedValue = null
     let comparedValue = null
 
@@ -336,8 +336,12 @@ app.post('/api/compare-date', async (req, res) => {
     }
 
     if (result === null) {
-      console.log('No ComparisonResult event found, result may be in transaction logs')
-      result = 'Transaction completed - check blockchain explorer for events'
+      console.error('❌ ERROR: No ComparisonResult event found in transaction logs!')
+      console.error('This indicates the comparison function may have failed silently.')
+      return res.status(500).json({ 
+        error: 'Failed to get comparison result from blockchain. Transaction succeeded but no result event was found.',
+        transactionHash: tx.hash 
+      })
     }
 
     res.json({

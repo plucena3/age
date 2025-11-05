@@ -46,6 +46,11 @@ function Player2Page() {
       
       console.log('Compare result:', result)
       
+      // Check if the result is valid
+      if (result.result === null || result.result === undefined) {
+        throw new Error('Comparison returned no result. Please try again.')
+      }
+      
       // operation 'greater' means stored > guessed (i.e., actual person is OLDER than guess)
       // operation 'less' means stored < guessed (i.e., actual person is YOUNGER than guess)
       const booleanResult = result.result === 'true' || result.result === true

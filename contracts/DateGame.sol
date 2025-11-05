@@ -52,10 +52,33 @@ contract DateGame {
         uint64 incomingValue = MpcCore.decrypt(incomingGt);
         bool result = _date > incomingValue;
         
-        // Emit event with the result
-        emit ComparisonResult("greaterThan", result);
+        // Emit event with the result and the decrypted values for debugging
+        emit ComparisonResult(
+            string(abi.encodePacked("greaterThan: stored=", uint2str(_date), " incoming=", uint2str(incomingValue))), 
+            result
+        );
         
         return result;
+    }
+    
+    // Helper function to convert uint to string
+    function uint2str(uint64 _i) internal pure returns (string memory) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint64 j = _i;
+        uint len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint64 k = _i;
+        while (k != 0) {
+            bstr[--len] = bytes1(uint8(48 + k % 10));
+            k /= 10;
+        }
+        return string(bstr);
     }
 
     /**
@@ -71,8 +94,11 @@ contract DateGame {
         uint64 incomingValue = MpcCore.decrypt(incomingGt);
         bool result = _date < incomingValue;
         
-        // Emit event with the result
-        emit ComparisonResult("lessThan", result);
+        // Emit event with the result and the decrypted values for debugging
+        emit ComparisonResult(
+            string(abi.encodePacked("lessThan: stored=", uint2str(_date), " incoming=", uint2str(incomingValue))), 
+            result
+        );
         
         return result;
     }

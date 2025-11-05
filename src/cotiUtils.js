@@ -227,4 +227,4 @@ export class CotiService {
 }
 
 // Contract address
-export const CONTRACT_ADDRESS = '0x9375832c710ac129B7e9C07c86484509c1FD3E9D'
+export const CONTRACT_ADDRESS = '0x5Fc077BE16D41141b464cdbFB16b9E4BBeCee6Fa'

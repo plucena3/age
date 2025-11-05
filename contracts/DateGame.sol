@@ -9,8 +9,8 @@ contract DateGame {
     gtUint64 private _date;
     bool private _dateSet;
     
-    // Events to capture comparison results
-    event ComparisonResult(string operation, bool result);
+    // Events to capture comparison results - emit encrypted result for user to decrypt off-chain
+    event ComparisonResult(string operation, ctBool userEncryptedResult);
     event AgeStored(string message);
     
     constructor() {
@@ -43,7 +43,7 @@ contract DateGame {
      * @notice Compares the stored age with an incoming encrypted age value and returns true if stored age > incoming age
      * @param value encrypted input (itUint64) coming from user representing an age to compare
      */
-    function greaterThan(itUint64 calldata value) external returns (bool) {
+    function greaterThan(itUint64 calldata value) external returns (ctBool) {
         require(_dateSet, "No age has been stored yet");
         
         gtUint64 incomingGt = MpcCore.validateCiphertext(value);
@@ -51,26 +51,20 @@ contract DateGame {
         // Use MPC encrypted comparison - compare encrypted values directly
         gtBool gtResult = MpcCore.gt(_date, incomingGt);
         
-        // Convert gtBool to gtUint8: if gtResult then 1 else 0
-        gtUint8 one = MpcCore.setPublic8(1);
-        gtUint8 zero = MpcCore.setPublic8(0);
-        gtUint8 gtUint8Result = MpcCore.mux(gtResult, one, zero);
+        // Encrypt result for user to decrypt off-chain
+        ctBool userEncryptedResult = MpcCore.offBoardToUser(gtResult, msg.sender);
         
-        // Decrypt the uint8 result
-        uint8 uintResult = MpcCore.decrypt(gtUint8Result);
-        bool result = uintResult != 0;
+        // Emit event with the encrypted result
+        emit ComparisonResult("greaterThan", userEncryptedResult);
         
-        // Emit event with the result
-        emit ComparisonResult("greaterThan", result);
-        
-        return result;
+        return userEncryptedResult;
     }
 
     /**
      * @notice Compares the stored age with an incoming encrypted age value and returns true if stored age < incoming age
      * @param value encrypted input (itUint64) coming from user representing an age to compare
      */
-    function lessThan(itUint64 calldata value) external returns (bool) {
+    function lessThan(itUint64 calldata value) external returns (ctBool) {
         require(_dateSet, "No age has been stored yet");
         
         gtUint64 incomingGt = MpcCore.validateCiphertext(value);
@@ -78,19 +72,13 @@ contract DateGame {
         // Use MPC encrypted comparison - compare encrypted values directly
         gtBool gtResult = MpcCore.lt(_date, incomingGt);
         
-        // Convert gtBool to gtUint8: if gtResult then 1 else 0
-        gtUint8 one = MpcCore.setPublic8(1);
-        gtUint8 zero = MpcCore.setPublic8(0);
-        gtUint8 gtUint8Result = MpcCore.mux(gtResult, one, zero);
+        // Encrypt result for user to decrypt off-chain
+        ctBool userEncryptedResult = MpcCore.offBoardToUser(gtResult, msg.sender);
         
-        // Decrypt the uint8 result
-        uint8 uintResult = MpcCore.decrypt(gtUint8Result);
-        bool result = uintResult != 0;
+        // Emit event with the encrypted result
+        emit ComparisonResult("lessThan", userEncryptedResult);
         
-        // Emit event with the result
-        emit ComparisonResult("lessThan", result);
-        
-        return result;
+        return userEncryptedResult;
     }
 
 }

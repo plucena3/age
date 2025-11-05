@@ -11,7 +11,7 @@ app.use(cors())
 app.use(express.json())
 
 // Contract configuration
-const CONTRACT_ADDRESS = '0x9375832c710ac129B7e9C07c86484509c1FD3E9D'
+const CONTRACT_ADDRESS = '0x5Fc077BE16D41141b464cdbFB16b9E4BBeCee6Fa'
 const PRIVATE_KEY = 'ae7f54c98460fed4c2ecb2e143f0e8110db534d390940f9f7b7048b94d614306'
 const AES_KEY = 'ae7f54c98460fed4c2ecb2e143f0e8110db534d390940f9f7b7048b94d614306' // Using same key for simplicity
 
@@ -26,14 +26,14 @@ const DateGameABI = [
   {
     "inputs": [{ "components": [{ "internalType": "ctUint64", "name": "ciphertext", "type": "uint256" }, { "internalType": "bytes", "name": "signature", "type": "bytes" }], "internalType": "struct itUint64", "name": "value", "type": "tuple" }],
     "name": "greaterThan",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [{ "internalType": "ctBool", "name": "", "type": "uint256" }],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [{ "components": [{ "internalType": "ctUint64", "name": "ciphertext", "type": "uint256" }, { "internalType": "bytes", "name": "signature", "type": "bytes" }], "internalType": "struct itUint64", "name": "value", "type": "tuple" }],
     "name": "lessThan",
-    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "outputs": [{ "internalType": "ctBool", "name": "", "type": "uint256" }],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -49,7 +49,7 @@ const DateGameABI = [
     "anonymous": false,
     "inputs": [
       { "indexed": false, "internalType": "string", "name": "operation", "type": "string" },
-      { "indexed": false, "internalType": "bool", "name": "result", "type": "bool" }
+      { "indexed": false, "internalType": "ctBool", "name": "userEncryptedResult", "type": "uint256" }
     ],
     "name": "ComparisonResult",
     "type": "event"
@@ -57,7 +57,7 @@ const DateGameABI = [
   {
     "anonymous": false,
     "inputs": [
-      { "indexed": false, "internalType": "uint64", "name": "value", "type": "uint64" }
+      { "indexed": false, "internalType": "string", "name": "message", "type": "string" }
     ],
     "name": "AgeStored",
     "type": "event"
@@ -305,49 +305,47 @@ app.post('/api/compare-date', async (req, res) => {
     const receipt = await tx.wait()
     console.log('Transaction receipt:', receipt)
 
-    // Parse events from the receipt to get the comparison result
-    let result = null
-    let storedValue = null
-    let comparedValue = null
+    // Parse events from the receipt to get the encrypted result (ctBool)
+    let encryptedResult = null
 
     console.log('Receipt logs:', receipt.logs)
 
     if (receipt.logs && receipt.logs.length > 0) {
       for (const log of receipt.logs) {
-        console.log('Raw log:', log)
         try {
           const parsedLog = contract.interface.parseLog(log)
           console.log('Parsed log:', parsedLog)
 
           if (parsedLog && parsedLog.name === 'ComparisonResult') {
-            result = parsedLog.args.result
-            console.log('Found ComparisonResult event:', {
-              operation: parsedLog.args.operation,
-              result: result
-            })
-            console.log('🔍 DEBUG - Full operation string:', parsedLog.args.operation)
+            encryptedResult = parsedLog.args.userEncryptedResult
+            console.log('Found ComparisonResult event with encrypted result:', encryptedResult.toString())
             break
           }
         } catch (parseError) {
           console.log('Could not parse log:', parseError.message)
-          console.log('Log data:', log.data)
-          console.log('Log topics:', log.topics)
         }
       }
     }
 
-    if (result === null) {
+    if (encryptedResult === null) {
       console.error('❌ ERROR: No ComparisonResult event found in transaction logs!')
-      console.error('This indicates the comparison function may have failed silently.')
       return res.status(500).json({ 
-        error: 'Failed to get comparison result from blockchain. Transaction succeeded but no result event was found.',
+        error: 'Failed to get comparison result from blockchain.',
         transactionHash: tx.hash 
       })
     }
 
+    // Decrypt the ctBool result off-chain using the wallet's AES key
+    console.log('Decrypting result off-chain...')
+    const decryptedResult = await cotiWallet.decryptValue(encryptedResult)
+    console.log('Decrypted result:', decryptedResult)
+    
+    // Convert BigInt to boolean
+    const boolResult = decryptedResult !== 0n
+
     res.json({
       success: true,
-      result: result,
+      result: boolResult,
       operation: operation,
       age: ageValue,
       transactionHash: tx.hash

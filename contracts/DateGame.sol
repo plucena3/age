@@ -40,10 +40,10 @@ contract DateGame {
     }
 
     /**
-     * @notice Compares the stored age with an incoming encrypted age value and returns true if stored age > incoming age
+     * @notice Compares the stored age with an incoming encrypted age value - emits encrypted result
      * @param value encrypted input (itUint64) coming from user representing an age to compare
      */
-    function greaterThan(itUint64 calldata value) external returns (ctBool) {
+    function greaterThan(itUint64 calldata value) external {
         require(_dateSet, "No age has been stored yet");
         
         gtUint64 incomingGt = MpcCore.validateCiphertext(value);
@@ -51,20 +51,18 @@ contract DateGame {
         // Use MPC encrypted comparison - compare encrypted values directly
         gtBool gtResult = MpcCore.gt(_date, incomingGt);
         
-        // Encrypt result for user to decrypt off-chain
-        ctBool userEncryptedResult = MpcCore.offBoardToUser(gtResult, msg.sender);
+        // Encrypt result for user to decrypt off-chain using offBoard (network key)
+        ctBool ctResult = MpcCore.offBoard(gtResult);
         
-        // Emit event with the encrypted result
-        emit ComparisonResult("greaterThan", userEncryptedResult);
-        
-        return userEncryptedResult;
+        // Emit event with the encrypted result - user will decrypt this off-chain
+        emit ComparisonResult("greaterThan", ctResult);
     }
 
     /**
-     * @notice Compares the stored age with an incoming encrypted age value and returns true if stored age < incoming age
+     * @notice Compares the stored age with an incoming encrypted age value - emits encrypted result
      * @param value encrypted input (itUint64) coming from user representing an age to compare
      */
-    function lessThan(itUint64 calldata value) external returns (ctBool) {
+    function lessThan(itUint64 calldata value) external {
         require(_dateSet, "No age has been stored yet");
         
         gtUint64 incomingGt = MpcCore.validateCiphertext(value);
@@ -72,13 +70,11 @@ contract DateGame {
         // Use MPC encrypted comparison - compare encrypted values directly
         gtBool gtResult = MpcCore.lt(_date, incomingGt);
         
-        // Encrypt result for user to decrypt off-chain
-        ctBool userEncryptedResult = MpcCore.offBoardToUser(gtResult, msg.sender);
+        // Encrypt result for user to decrypt off-chain using offBoard (network key)
+        ctBool ctResult = MpcCore.offBoard(gtResult);
         
-        // Emit event with the encrypted result
-        emit ComparisonResult("lessThan", userEncryptedResult);
-        
-        return userEncryptedResult;
+        // Emit event with the encrypted result - user will decrypt this off-chain
+        emit ComparisonResult("lessThan", ctResult);
     }
 
 }

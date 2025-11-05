@@ -11,7 +11,7 @@ app.use(cors())
 app.use(express.json())
 
 // Contract configuration
-const CONTRACT_ADDRESS = '0x5Fc077BE16D41141b464cdbFB16b9E4BBeCee6Fa'
+const CONTRACT_ADDRESS = '0xb47c29ff397d3e32a03e13d6B0a6ea9fdb6D7E07';
 const PRIVATE_KEY = 'ae7f54c98460fed4c2ecb2e143f0e8110db534d390940f9f7b7048b94d614306'
 const AES_KEY = 'ae7f54c98460fed4c2ecb2e143f0e8110db534d390940f9f7b7048b94d614306' // Using same key for simplicity
 
@@ -26,14 +26,14 @@ const DateGameABI = [
   {
     "inputs": [{ "components": [{ "internalType": "ctUint64", "name": "ciphertext", "type": "uint256" }, { "internalType": "bytes", "name": "signature", "type": "bytes" }], "internalType": "struct itUint64", "name": "value", "type": "tuple" }],
     "name": "greaterThan",
-    "outputs": [{ "internalType": "ctBool", "name": "", "type": "uint256" }],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [{ "components": [{ "internalType": "ctUint64", "name": "ciphertext", "type": "uint256" }, { "internalType": "bytes", "name": "signature", "type": "bytes" }], "internalType": "struct itUint64", "name": "value", "type": "tuple" }],
     "name": "lessThan",
-    "outputs": [{ "internalType": "ctBool", "name": "", "type": "uint256" }],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },

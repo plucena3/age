@@ -124,7 +124,7 @@ function Player2Page() {
             border: '1px solid #e9ecef'
           }}>
             <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Server-side encryption with Coti MPC</div>
-            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0x5Fc077BE16D41141b464cdbFB16b9E4BBeCee6Fa</div>
+            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0xb47c29ff397d3e32a03e13d6B0a6ea9fdb6D7E07</div>
           </div>
           
           <div className="form-group">

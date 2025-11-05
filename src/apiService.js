@@ -28,7 +28,7 @@ export class ApiService {
     }
   }
 
-  // Compare date on server
+  // Compare date on server (for testing with birthdates)
   static async compareDate(dateString, operation) {
     try {
       const response = await fetch(`${API_BASE_URL}/compare-date`, {
@@ -51,6 +51,33 @@ export class ApiService {
       return data
     } catch (error) {
       console.error('Error comparing date:', error)
+      throw error
+    }
+  }
+
+  // Compare age directly (for UI)
+  static async compareAge(age, operation) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/compare-date`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          age: age, 
+          operation: operation 
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to compare age')
+      }
+      
+      return data
+    } catch (error) {
+      console.error('Error comparing age:', error)
       throw error
     }
   }

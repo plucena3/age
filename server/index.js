@@ -190,10 +190,10 @@ app.post('/api/debug-date', async (req, res) => {
 // Compare date
 app.post('/api/compare-date', async (req, res) => {
   try {
-    const { date, operation } = req.body
+    const { date, age, operation } = req.body
 
-    if (!date || !operation) {
-      return res.status(400).json({ error: 'Age and operation are required' })
+    if (!operation) {
+      return res.status(400).json({ error: 'Operation is required' })
     }
 
     if (!['greater', 'less'].includes(operation)) {
@@ -207,15 +207,27 @@ app.post('/api/compare-date', async (req, res) => {
       }
     }
 
-    console.log('Comparing with birthdate:', date, 'operation:', operation)
-
-    // Calculate age from birthdate
-    const birthDate = new Date(date)
-    const today = new Date()
-    let ageValue = today.getFullYear() - birthDate.getFullYear()
-    const monthDiff = today.getMonth() - birthDate.getMonth()
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      ageValue--
+    // Support both formats: direct age number OR birthdate
+    let ageValue
+    if (age !== undefined && age !== null && age !== '') {
+      // Direct age provided (from UI)
+      ageValue = parseInt(age, 10)
+      if (isNaN(ageValue) || ageValue < 0) {
+        return res.status(400).json({ error: 'Invalid age value' })
+      }
+      console.log('Comparing with age:', ageValue, 'operation:', operation)
+    } else if (date) {
+      // Birthdate provided (from tests) - calculate age
+      const birthDate = new Date(date)
+      const today = new Date()
+      ageValue = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        ageValue--
+      }
+      console.log('Comparing with birthdate:', date, 'calculated age:', ageValue, 'operation:', operation)
+    } else {
+      return res.status(400).json({ error: 'Either age or date is required' })
     }
     
     const bigIntValue = BigInt(ageValue)

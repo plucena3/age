@@ -42,7 +42,8 @@ function Player2Page() {
     try {
       console.log('Comparing age:', compareDate, 'operation:', operation)
       
-      const result = await ApiService.compareDate(compareDate, operation)
+      // Pass age directly as a number (not a date)
+      const result = await ApiService.compareAge(parseInt(compareDate, 10), operation)
       
       console.log('Compare result:', result)
       
@@ -124,7 +125,7 @@ function Player2Page() {
             border: '1px solid #e9ecef'
           }}>
             <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Server-side encryption with Coti MPC</div>
-            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0xb47c29ff397d3e32a03e13d6B0a6ea9fdb6D7E07</div>
+            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0xAF7Fe476CE3bFd05b39265ecEd13a903Bb738729</div>
           </div>
           
           <div className="form-group">

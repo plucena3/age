@@ -212,7 +212,7 @@ function Player2Page() {
                         marginTop: '0.25rem'
                       }}>
                         <strong>TX:</strong> <a 
-                          href={`https://explorer-devnet.coti.io/tx/${guess.transactionHash}`}
+                          href={`https://testnet.cotiscan.io/tx/${guess.transactionHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{color: '#0066cc', textDecoration: 'none'}}

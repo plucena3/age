@@ -51,8 +51,14 @@ contract DateGame {
         // Use MPC encrypted comparison - compare encrypted values directly
         gtBool gtResult = MpcCore.gt(_date, incomingGt);
         
-        // Decrypt the comparison result
-        bool result = MpcCore.decrypt(gtResult);
+        // Convert gtBool to gtUint8: if gtResult then 1 else 0
+        gtUint8 one = MpcCore.setPublic8(1);
+        gtUint8 zero = MpcCore.setPublic8(0);
+        gtUint8 gtUint8Result = MpcCore.mux(gtResult, one, zero);
+        
+        // Decrypt the uint8 result
+        uint8 uintResult = MpcCore.decrypt(gtUint8Result);
+        bool result = uintResult != 0;
         
         // Emit event with the result
         emit ComparisonResult("greaterThan", result);
@@ -72,8 +78,14 @@ contract DateGame {
         // Use MPC encrypted comparison - compare encrypted values directly
         gtBool gtResult = MpcCore.lt(_date, incomingGt);
         
-        // Decrypt the comparison result (boolean)
-        bool result = MpcCore.decrypt(gtResult);
+        // Convert gtBool to gtUint8: if gtResult then 1 else 0
+        gtUint8 one = MpcCore.setPublic8(1);
+        gtUint8 zero = MpcCore.setPublic8(0);
+        gtUint8 gtUint8Result = MpcCore.mux(gtResult, one, zero);
+        
+        // Decrypt the uint8 result
+        uint8 uintResult = MpcCore.decrypt(gtUint8Result);
+        bool result = uintResult != 0;
         
         // Emit event with the result
         emit ComparisonResult("lessThan", result);

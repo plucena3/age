@@ -5,13 +5,13 @@ pragma solidity ^0.8.19;
 import "@coti-io/coti-contracts/contracts/utils/mpc/MpcCore.sol";
 
 contract DateGame {
-    // stored age as plaintext (for debugging)
-    uint64 private _date;
+    // Store age as gtUint64 (encrypted in MPC domain)
+    gtUint64 private _date;
     bool private _dateSet;
     
     // Events to capture comparison results
     event ComparisonResult(string operation, bool result);
-    event AgeStored(uint64 value);
+    event AgeStored(string message);
     
     constructor() {
         _dateSet = false;
@@ -31,12 +31,12 @@ contract DateGame {
     function setAge(itUint64 calldata age) external {
         gtUint64 gtAge = MpcCore.validateCiphertext(age);
         
-        // Decrypt and store as plaintext for debugging
-        _date = MpcCore.decrypt(gtAge);
+        // Store the encrypted value in MPC domain
+        _date = gtAge;
         _dateSet = true;
         
-        // Emit event with decrypted value
-        emit AgeStored(_date);
+        // Emit event
+        emit AgeStored("Age stored successfully");
     }
 
     /**
@@ -48,37 +48,16 @@ contract DateGame {
         
         gtUint64 incomingGt = MpcCore.validateCiphertext(value);
         
-        // Decrypt incoming value and compare with stored plaintext
-        uint64 incomingValue = MpcCore.decrypt(incomingGt);
-        bool result = _date > incomingValue;
+        // Use MPC encrypted comparison - compare encrypted values directly
+        gtBool gtResult = MpcCore.gt(_date, incomingGt);
         
-        // Emit event with the result and the decrypted values for debugging
-        emit ComparisonResult(
-            string(abi.encodePacked("greaterThan: stored=", uint2str(_date), " incoming=", uint2str(incomingValue))), 
-            result
-        );
+        // Decrypt the comparison result
+        bool result = MpcCore.decrypt(gtResult);
+        
+        // Emit event with the result
+        emit ComparisonResult("greaterThan", result);
         
         return result;
-    }
-    
-    // Helper function to convert uint to string
-    function uint2str(uint64 _i) internal pure returns (string memory) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint64 j = _i;
-        uint len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint64 k = _i;
-        while (k != 0) {
-            bstr[--len] = bytes1(uint8(48 + k % 10));
-            k /= 10;
-        }
-        return string(bstr);
     }
 
     /**
@@ -90,15 +69,14 @@ contract DateGame {
         
         gtUint64 incomingGt = MpcCore.validateCiphertext(value);
         
-        // Decrypt incoming value and compare with stored plaintext
-        uint64 incomingValue = MpcCore.decrypt(incomingGt);
-        bool result = _date < incomingValue;
+        // Use MPC encrypted comparison - compare encrypted values directly
+        gtBool gtResult = MpcCore.lt(_date, incomingGt);
         
-        // Emit event with the result and the decrypted values for debugging
-        emit ComparisonResult(
-            string(abi.encodePacked("lessThan: stored=", uint2str(_date), " incoming=", uint2str(incomingValue))), 
-            result
-        );
+        // Decrypt the comparison result (boolean)
+        bool result = MpcCore.decrypt(gtResult);
+        
+        // Emit event with the result
+        emit ComparisonResult("lessThan", result);
         
         return result;
     }

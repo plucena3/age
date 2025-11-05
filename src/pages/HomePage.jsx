@@ -44,7 +44,7 @@ function HomePage() {
             </p>
 
             <div style={{marginTop: '1.5rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '8px', fontSize: '0.85rem', color: '#6c757d', textAlign: 'center'}}>
-              <p style={{margin: '0 0 0.5rem 0'}}><strong>Contract:</strong> 0xb931D3D89B69e8bC51aF29Cb26Ddd8a462A61FcA</p>
+              <p style={{margin: '0 0 0.5rem 0'}}><strong>Contract:</strong> 0x299e4A4AE2185C64FBBa571Ad94009EfD30d655f</p>
               <p style={{margin: 0}}><strong>Network:</strong> Coti Testnet</p>
             </div>
           </div>

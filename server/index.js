@@ -11,7 +11,7 @@ app.use(cors())
 app.use(express.json())
 
 // Contract configuration
-const CONTRACT_ADDRESS = '0xb931D3D89B69e8bC51aF29Cb26Ddd8a462A61FcA'
+const CONTRACT_ADDRESS = '0x299e4A4AE2185C64FBBa571Ad94009EfD30d655f'
 const PRIVATE_KEY = 'ae7f54c98460fed4c2ecb2e143f0e8110db534d390940f9f7b7048b94d614306'
 const AES_KEY = 'ae7f54c98460fed4c2ecb2e143f0e8110db534d390940f9f7b7048b94d614306' // Using same key for simplicity
 

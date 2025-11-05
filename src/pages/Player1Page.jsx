@@ -40,7 +40,7 @@ function Player1Page() {
       
       console.log('Store result:', result)
       const txHash = result.transactionHash
-      const contractAddress = '0xb931D3D89B69e8bC51aF29Cb26Ddd8a462A61FcA'
+      const contractAddress = '0x299e4A4AE2185C64FBBa571Ad94009EfD30d655f'
       const explorerLink = `https://testnet.cotiscan.io/address/${contractAddress}?tab=txs`
       setStoreStatus(
         <div>
@@ -109,7 +109,7 @@ function Player1Page() {
             border: '1px solid #e9ecef'
           }}>
             <div style={{fontSize: '0.95rem', marginBottom: '0.25rem'}}>🔐 Server-side encryption with Coti MPC</div>
-            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0xb931D3D89B69e8bC51aF29Cb26Ddd8a462A61FcA</div>
+            <div style={{fontSize: '0.85rem', color: '#6c757d', wordBreak: 'break-all'}}>📍 Contract: 0x299e4A4AE2185C64FBBa571Ad94009EfD30d655f</div>
           </div>
           
           <div className="form-group">
